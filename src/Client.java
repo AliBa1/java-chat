@@ -19,6 +19,8 @@ public class Client {
 			clientSocket = newServerSocket;
 		} catch (IOException e) {
 			e.printStackTrace(System.err);
+			System.out.println("Problem @ 22");
+			System.exit(0);
 		}
 	}
 
@@ -34,14 +36,18 @@ public class Client {
 		// }
 		connectToServer();
 
-		new Thread(() -> sendMessages()).start();
-		new Thread(() -> readMessages()).start();
+		// new Thread(() -> sendMessages()).start();
+		// new Thread(() -> readMessages()).start();
 	}
 
 	private static void connectToServer() {
 		try {
 			socket = new Socket("localhost", SERVER_PORT);
-			System.out.println("Client " + id + " has joined the server");
+			if (socket.isConnected()) {
+				System.out.println("You are connected to the server");
+			} else {	
+				System.out.println("Something went wrong connecting you to the server");
+			}
 		} catch (IOException e) {
 			e.printStackTrace(System.err);
 		}
@@ -49,7 +55,7 @@ public class Client {
 
 	private static void sendMessages() {
 		while (true) {
-			System.out.println("> ");
+			System.out.print("> ");
 			try (Scanner scanner = new Scanner(System.in)) {
 				String clientMessage = scanner.nextLine();
 				DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
@@ -58,6 +64,7 @@ public class Client {
 				dataOutputStream.flush();
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
+				System.exit(0);
 			}
 		}
 	}
@@ -73,6 +80,8 @@ public class Client {
 				}
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
+				System.out.println("Problem @ 78");
+				System.exit(0);
 			}
 		}
 	}

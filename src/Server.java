@@ -38,30 +38,34 @@ public class Server {
 	}
 
 	private static void recieveMessages(Client client, Socket clientSocket) {
-		while (true) {
-			try (InputStream inputStream = clientSocket.getInputStream()) {
-				try (Scanner scanner = new Scanner(inputStream, "UTF-8").useDelimiter("\\A")) {
-					String incomingMessage = client.toString();
-					incomingMessage += scanner.hasNext() ? scanner.next() : "";
-					System.out.print(incomingMessage);
+		try (InputStream inputStream = clientSocket.getInputStream()) {
+			try (Scanner scanner = new Scanner(inputStream, "UTF-8").useDelimiter("\\A")) {
+				while (scanner.hasNext()) {
+					String incomingMessage = client.toString() + scanner.next();
+					System.out.println(incomingMessage);
 					sendMessage(client.getID(), incomingMessage);
-				} catch (Exception e) {
-					e.printStackTrace(System.err);
 				}
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
+				System.out.println("Problem @ 50");
+				System.exit(0);
 			}
+		} catch (Exception e) {
+			e.printStackTrace(System.err);
+			System.out.println("Problem @ 55");
+			System.exit(0);
 		}
 	}
 
 	private static void sendMessage(int senderID, String message) {
 		for (Client client : clients) {
 			if (client.getID() != senderID) {
-				try (Socket socket = new Socket(client.clientSocket.getInetAddress(), client.clientSocket.getLocalPort())) {
+				try (Socket socket = new Socket(client.clientSocket.getInetAddress(),
+						client.clientSocket.getLocalPort())) {
 					DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-				dataOutputStream.writeByte(1);
-				dataOutputStream.writeUTF(message);
-				dataOutputStream.flush();
+					dataOutputStream.writeByte(1);
+					dataOutputStream.writeUTF(message);
+					dataOutputStream.flush();
 				} catch (IOException e) {
 					System.out.println("Couldn't send to client " + client.getID());
 					// e.printStackTrace(System.err);
