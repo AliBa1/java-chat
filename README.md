@@ -1,6 +1,9 @@
 # java-chat
 Realtime CLI Chat App in Java
 
+## Current State
+Sending messages to the server is not working right now
+
 ## Goals
 - Implement multithreading
 - Implement a design pattern
