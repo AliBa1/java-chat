@@ -28,31 +28,28 @@ public class Server {
 		while (true) {
 			try (Socket clientSocket = serverSocket.accept()) {
 				System.out.println("A client has connected");
-				Client client = new Client(clients.size());
+				Client client = new Client(clients.size(), clientSocket.getInetAddress(), clientSocket.getLocalPort());
 				clients.add(client);
-				new Thread(() -> recieveMessages(client, clientSocket)).start();
+				new Thread(() -> recieveMessages(client)).start();
+				// new Thread(() -> recieveMessages(client, clientSocket)).start();
 			} catch (IOException e) {
 				System.out.print("Error connecting client");
 			}
 		}
 	}
 
-	private static void recieveMessages(Client client, Socket clientSocket) {
-		try (InputStream inputStream = clientSocket.getInputStream()) {
-			try (Scanner scanner = new Scanner(inputStream, "UTF-8").useDelimiter("\\A")) {
-				while (scanner.hasNext()) {
-					String incomingMessage = client.toString() + scanner.next();
-					System.out.println(incomingMessage);
-					sendMessage(client.getID(), incomingMessage);
-				}
-			} catch (Exception e) {
-				e.printStackTrace(System.err);
-				System.out.println("Problem @ 50");
-				System.exit(0);
+	private static void recieveMessages(Client client) {
+		try (
+				Socket clientSocket = new Socket(client.getAddress(), client.getPort());
+				InputStream inputStream = clientSocket.getInputStream();
+				Scanner scanner = new Scanner(inputStream, "UTF-8").useDelimiter("\\A");) {
+			while (scanner.hasNext()) {
+				String incomingMessage = client.toString() + scanner.next();
+				System.out.println(incomingMessage);
+				sendMessage(client.getID(), incomingMessage);
 			}
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
-			System.out.println("Problem @ 55");
 			System.exit(0);
 		}
 	}
@@ -60,15 +57,13 @@ public class Server {
 	private static void sendMessage(int senderID, String message) {
 		for (Client client : clients) {
 			if (client.getID() != senderID) {
-				try (Socket socket = new Socket(client.clientSocket.getInetAddress(),
-						client.clientSocket.getLocalPort())) {
-					DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-					dataOutputStream.writeByte(1);
+				try (
+						Socket clientSocket = new Socket(client.getAddress(), client.getPort());) {
+					DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
 					dataOutputStream.writeUTF(message);
 					dataOutputStream.flush();
 				} catch (IOException e) {
-					System.out.println("Couldn't send to client " + client.getID());
-					// e.printStackTrace(System.err);
+					e.printStackTrace(System.err);
 				}
 			}
 		}

@@ -3,7 +3,7 @@ package src;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ServerSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -11,17 +11,21 @@ public class Client {
 	private static final int SERVER_PORT = 55556;
 	private static int id;
 	private static Socket socket;
-	public ServerSocket clientSocket;
+	private final InetAddress address;
+	private final int port;
 
-	public Client(int setID) {
+	public InetAddress getAddress() {
+		return address;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public Client(int setID, InetAddress address, int port) {
 		id = setID;
-		try (ServerSocket newServerSocket = new ServerSocket()) {
-			clientSocket = newServerSocket;
-		} catch (IOException e) {
-			e.printStackTrace(System.err);
-			System.out.println("Problem @ 22");
-			System.exit(0);
-		}
+		this.address = address;
+		this.port = port;
 	}
 
 	public int getID() {
@@ -29,43 +33,40 @@ public class Client {
 	}
 
 	public static void main(String[] args) {
-		// try (Socket socket = new Socket("localhost", SERVER_PORT)) {
-		// System.out.println("Client " + id + " has joined the server");
-		// } catch (IOException e) {
-		// e.printStackTrace(System.err);
-		// }
 		connectToServer();
 
-		// new Thread(() -> sendMessages()).start();
+		new Thread(() -> sendMessages()).start();
 		// new Thread(() -> readMessages()).start();
 	}
 
 	private static void connectToServer() {
 		try {
 			socket = new Socket("localhost", SERVER_PORT);
-			if (socket.isConnected()) {
-				System.out.println("You are connected to the server");
-			} else {	
-				System.out.println("Something went wrong connecting you to the server");
-			}
+			// if (socket.isConnected()) {
+			// 	System.out.println("You are connected to the server");
+			// } else {
+			// 	System.out.println("Something went wrong connecting you to the server");
+			// }
 		} catch (IOException e) {
 			e.printStackTrace(System.err);
 		}
 	}
 
 	private static void sendMessages() {
-		while (true) {
-			System.out.print("> ");
-			try (Scanner scanner = new Scanner(System.in)) {
+		try (
+				Scanner scanner = new Scanner(System.in);
+				DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
+			while (true) {
+				System.out.print("> ");
 				String clientMessage = scanner.nextLine();
-				DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-				dataOutputStream.writeByte(1);
 				dataOutputStream.writeUTF(clientMessage);
+				// connectToServer();
 				dataOutputStream.flush();
-			} catch (Exception e) {
-				e.printStackTrace(System.err);
-				System.exit(0);
+				// connectToServer();
 			}
+		} catch (IOException e) {
+			e.printStackTrace(System.err);
+			System.exit(0);
 		}
 	}
 
@@ -80,7 +81,7 @@ public class Client {
 				}
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
-				System.out.println("Problem @ 78");
+				System.out.println("Problem @ Read Msg Input Stream");
 				System.exit(0);
 			}
 		}

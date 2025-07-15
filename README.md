@@ -2,7 +2,7 @@
 Realtime CLI Chat App in Java
 
 ## Current State
-Sending messages to the server is not working right now
+Sockets might not be long lived bidirectional connections in the way that WebSockets are which is why I think my initial structure isn't working. Going forward I should use WebSockets or connect to the socket again everytime I use it.
 
 ## Goals
 - Implement multithreading
